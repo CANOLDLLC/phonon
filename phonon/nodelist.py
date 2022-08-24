@@ -48,9 +48,9 @@ class Nodelist(object):
             will be checked.
         """
         if node_ids:
-            nodes = zip(node_ids, [int(t) for t in self.conn.client.hmget(self.nodelist_key, node_ids)])
+            nodes = list(zip(node_ids, [int(t) for t in self.conn.client.hmget(self.nodelist_key, node_ids)]))
         else:
-            nodes = self.get_all_nodes().items()
+            nodes = list(self.get_all_nodes().items())
 
         expiration_delta = self.conn.PROCESS_TTL * 1000.
         now = int(time.time() * 1000.)
@@ -116,7 +116,7 @@ class Nodelist(object):
 
         """
         nodes = self.conn.client.hgetall(self.nodelist_key)
-        return {node_id: int(dt) for (node_id, dt) in nodes.items()}
+        return {node_id: int(dt) for (node_id, dt) in list(nodes.items())}
 
     def count(self):
         """

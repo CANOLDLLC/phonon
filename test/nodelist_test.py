@@ -22,8 +22,8 @@ class NodelistTest(unittest.TestCase):
 
     def test_create_node_list(self):
         nodelist = Nodelist("key")
-        assert nodelist.nodelist_key == "phonon_key.nodelist"
-        assert self.conn.client.hgetall(nodelist.nodelist_key) != {}
+        self.assertEqual(nodelist.nodelist_key, "phonon_key.nodelist")
+        self.assertNotEqual(self.conn.client.hgetall(nodelist.nodelist_key), {})
 
     def test_refresh_session_refreshes_time(self):
         nodelist = Nodelist("key")
@@ -32,8 +32,8 @@ class NodelistTest(unittest.TestCase):
         time.sleep(0.01)
         nodelist.refresh_session()
         updated_now = nodelist.get_last_updated(self.conn.id)
-        assert isinstance(updated_now, int)
-        assert updated_now != now, "{} == {}".format(updated_now, now)
+        self.assertIsInstance(updated_now, int)
+        self.assertNotEqual(updated_now, now)
 
     def test_find_expired_nodes(self):
         now = int(time.time() * 1000.)
@@ -45,8 +45,8 @@ class NodelistTest(unittest.TestCase):
         self.conn.client.hset(nodelist.nodelist_key, '2', expired)
 
         target = nodelist.find_expired_nodes()
-        assert u'2' in target, target
-        assert u'1' not in target, target
+        self.assertIn(b'2', target)
+        self.assertNotIn(b'1', target)
 
     def test_remove_expired_nodes(self):
         now = int(time.time() * 1000.)
@@ -58,13 +58,13 @@ class NodelistTest(unittest.TestCase):
         self.conn.client.hset(nodelist.nodelist_key, '2', expired)
 
         nodes = nodelist.get_all_nodes()
-        assert '1' in nodes
-        assert '2' in nodes
+        self.assertIn(b'1', nodes)
+        self.assertIn(b'2', nodes)
 
         nodelist.remove_expired_nodes()
         nodes = nodelist.get_all_nodes()
-        assert '1' not in nodes
-        assert '2' not in nodes
+        self.assertNotIn(b'1', nodes)
+        self.assertNotIn(b'2', nodes)
 
     def test_refreshed_node_not_deleted(self):
         now = int(time.time() * 1000.)
@@ -76,29 +76,29 @@ class NodelistTest(unittest.TestCase):
         self.conn.client.hset(nodelist.nodelist_key, '2', expired)
 
         expired = nodelist.find_expired_nodes()
-        assert u'2' in expired, expired
-        assert u'1' in expired, expired
+        self.assertIn(b'2', expired)
+        self.assertIn(b'1', expired)
         self.conn.client.hset(nodelist.nodelist_key, '1', now)
 
         nodelist.refresh_session('1')
         nodelist.remove_expired_nodes(expired)
 
-        assert nodelist.get_last_updated('1') is not None, nodelist.get_last_updated('1')
-        assert nodelist.get_last_updated('2') is None, nodelist.get_last_updated('2')
+        self.assertNotEqual(nodelist.get_last_updated('1'), None)
+        self.assertIs(nodelist.get_last_updated('2'), None)
 
     def test_remove_node(self):
         nodelist = Nodelist('key')
         nodelist.refresh_session('1')
 
         nodes = nodelist.get_all_nodes()
-        assert '1' in nodes
+        self.assertIn(b'1', nodes)
 
         nodelist.remove_node('1')
         nodes = nodelist.get_all_nodes()
-        assert '1' not in nodes
+        self.assertNotIn(b'1', nodes)
 
     def test_clear_nodelist(self):
         nodelist = Nodelist('key')
         nodes = nodelist.clear_nodelist()
         nodes = nodelist.get_all_nodes()
-        assert nodes == {}
+        self.assertEqual(nodes, {})

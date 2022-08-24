@@ -26,7 +26,7 @@ class ModelTest(unittest.TestCase):
         assert foo.id == 1, foo.id
         assert foo.a == 5, foo.a
 
-        with self.assertRaisesRegexp(phonon.exceptions.ArgumentError, "id is a required field"):
+        with self.assertRaisesRegex(phonon.exceptions.ArgumentError, "id is a required field"):
             c = BizBar(a=6)
 
     def test_merge(self):
@@ -49,4 +49,4 @@ class ModelTest(unittest.TestCase):
         a.cache()
 
         cached_value = self.conn.client.get('BizBar.1.a')
-        assert cached_value == '5', cached_value
+        assert cached_value == b'5', cached_value

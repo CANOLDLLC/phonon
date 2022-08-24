@@ -14,8 +14,8 @@ class ShardedClient(object):
         self.hosts = sorted(hosts)
         self.clients = [redis.StrictRedis(host=host, port=port, db=db) for host in self.hosts]
 
-    def route(self, key):
-        return self.clients[(zlib.crc32(key) & 0xffffffff) % len(self.clients)]
+    def route(self, key: str):
+        return self.clients[(zlib.crc32(key.encode("utf8")) & 0xffffffff) % len(self.clients)]
 
     def __flushall(self):
         return all([client.flushall() for client in self.clients])
@@ -38,5 +38,5 @@ class ShardedClient(object):
 
         return wrap
 
-    def using_key(self, key):
+    def using_key(self, key: str):
         return self.route(key)

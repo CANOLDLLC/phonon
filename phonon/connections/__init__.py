@@ -30,7 +30,7 @@ class AsyncConn(phonon.event.EventMixin):
     def __init__(self, redis_hosts, port=6379, db=1, ioloop=None):
         super(AsyncConn, self).__init__()
 
-        self.id = str(uuid.uuid4())
+        self.id = str(uuid.uuid4()).encode("utf8")
 
         self.client = phonon.client.ShardedClient(
             hosts=redis_hosts, port=port, db=db)
@@ -83,7 +83,7 @@ class AsyncConn(phonon.event.EventMixin):
     def list_failed_and_active_pids(self):
         failed = set()
         active = set()
-        for pid, heartbeat_time in self.client.hgetall(self.HEARTBEAT_KEY).items():
+        for pid, heartbeat_time in list(self.client.hgetall(self.HEARTBEAT_KEY).items()):
             if int(heartbeat_time) <= get_ms() - s_to_ms(3 * self.HEARTBEAT_INTERVAL):
                 failed.add(pid)
             else:
@@ -98,7 +98,7 @@ class AsyncConn(phonon.event.EventMixin):
         for failed_pid in failed:
             registry_key = self.get_registry_key(failed_pid)
             if failed_pid == self.id:
-                self.id = unicode(uuid.uuid4())
+                self.id = str(uuid.uuid4()).encode("utf8")
                 self.registry_key = self.get_registry_key(self.id)
             elif active:
                 orphan_count = self.client.scard(registry_key)

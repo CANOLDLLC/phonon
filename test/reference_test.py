@@ -78,9 +78,9 @@ class ReferenceTest(unittest.TestCase):
         nodes = a.nodelist.get_all_nodes()
         while conns:
             conn = conns.popleft()
-            assert conn.id in nodes
+            self.assertIn(conn.id, nodes)
 
-        assert phonon.connections.connection.id in nodes
+        self.assertIn(phonon.connections.connection.id, nodes)
 
     def test_nodelist_dereferences_multinodes(self):
         phonon.connections.connection = phonon.connections.AsyncConn(redis_hosts=['localhost'])
@@ -176,14 +176,14 @@ class ReferenceTest(unittest.TestCase):
         b = phonon.reference.Reference('foo')
 
         pids = a.nodelist.get_all_nodes()
-        assert a.conn.id in pids
-        assert b.conn.id in pids
+        self.assertIn(a.conn.id, pids)
+        self.assertIn(b.conn.id, pids)
         a.dereference()
         pids = a.nodelist.get_all_nodes()
-        assert a.conn.id not in pids
+        self.assertNotIn(a.conn.id, pids)
         b.dereference()
         pids = a.nodelist.get_all_nodes()
-        assert b.conn.id not in pids
+        self.assertNotIn(b.conn.id, pids)
         assert len(pids) == 0
 
     def test_dereference_cleans_up(self):

@@ -8,5 +8,5 @@ class Foo(Model):
     a = SumField()
 
 foo = Foo(a=1)
-print Foo._fields
-print foo.a
+print(Foo._fields)
+print(foo.a)

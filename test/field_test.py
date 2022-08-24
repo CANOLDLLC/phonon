@@ -84,7 +84,7 @@ class FieldTest(unittest.TestCase):
         a = phonon.fields.ListAppend()
         assert a.cache(self.conn.client, model, 'test_list', [1, 2, 3, 4, 5])
         observed = self.conn.client.lrange('Foo.1.test_list', 0, 5)
-        expected = ['1', '2', '3', '4', '5']
+        expected = [b'1', b'2', b'3', b'4', b'5']
         assert observed == expected, observed
 
     def test_list_merge(self):
@@ -94,7 +94,7 @@ class FieldTest(unittest.TestCase):
     def test_set_cache(self):
         a = phonon.fields.SetAppend()
         assert a.cache(self.conn.client, self.model, 'test_set', set([1, 2, 3, 4, 5]))
-        assert self.conn.client.smembers('Foo.1.test_set') == set(['1', '2', '3', '4', '5'])
+        self.assertEqual(self.conn.client.smembers('Foo.1.test_set'), set([b'1', b'2', b'3', b'4', b'5']))
 
     def test_set_merge(self):
         a = phonon.fields.SetAppend()
@@ -108,9 +108,9 @@ class FieldTest(unittest.TestCase):
         a = phonon.fields.WindowedList()
         # Cache elements go score, element
         assert a.cache(self.conn.client, self.model, 'test_window', [(i, i * 10) for i in range(15)])
-        expected = [str(i * 10) for i in range(15)][6:]
+        expected = [str(i * 10).encode("utf8") for i in range(15)][6:]
         observed = self.conn.client.zrangebyscore('Foo.1.test_window', 1, 100)
-        assert expected == observed, observed
+        self.assertEqual(expected, observed)
 
     def test_windowedlist_merge(self):
         a = phonon.fields.WindowedList()

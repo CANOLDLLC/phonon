@@ -15,14 +15,14 @@ class MetaModel(type):
     """
     def __new__(cls, name, parents, dct):
         cls._fields = {}
-        for key, val in dct.items():
+        for key, val in list(dct.items()):
             if isinstance(val, phonon.fields.Field):
                 cls._fields[key] = val
 
         return super(MetaModel, cls).__new__(cls, name, parents, dct)
 
 
-class Model(object):
+class Model(object, metaclass=MetaModel):
     """
     The Model class should be the base for any user-defined models. It provides an interface to configure your
     datatypes in such a way that aggregation is simple and transparent, with global awareness. For example; if you
@@ -48,7 +48,6 @@ class Model(object):
     such as at what time to write that session data to the database; and how to sort the last ten pages viewed when in
     fact the user has viewed 20.
     """
-    __metaclass__ = MetaModel
 
     TTL = 30  # Seconds
 
@@ -58,10 +57,10 @@ class Model(object):
             self.__resource_key = "{}.{}".format(self.__class__.__name__, self.id)
             self.reference = phonon.reference.Reference(self.__resource_key)
             self.__client = phonon.connections.connection.client.using_key(self.__resource_key)
-        except KeyError, e:
+        except KeyError as e:
             raise phonon.exceptions.ArgumentError("id is a required field")
 
-        for key, field in self.__class__._fields.items():
+        for key, field in list(self.__class__._fields.items()):
             setattr(self, key, kwargs[key])
 
     def name(self):
@@ -71,12 +70,12 @@ class Model(object):
         return "{}.{}".format(self.name(), self.id)
 
     def merge(self, other):
-        for key, field in self.__class__._fields.items():
+        for key, field in list(self.__class__._fields.items()):
             setattr(self, key, field.merge(getattr(self, key),
                                            getattr(other, key)))
 
     def cache(self):
-        for field_name, field in self.__class__._fields.items():
+        for field_name, field in list(self.__class__._fields.items()):
             field_value = getattr(self, field_name)
             if not field.cache(self.__client, self, field_name, field_value):
                 raise phonon.exceptions.CacheError("Failed to cache {}".format(field_name))
